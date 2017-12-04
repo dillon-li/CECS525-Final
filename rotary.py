@@ -1,21 +1,21 @@
-from RPI import GPIO
+from RPi import GPIO
 from time import sleep
 import uinput
 
 # Define our "keyboard"
 device = uinput.Device([
     uinput.KEY_A,
-    uninput.KEY_Y
+    uinput.KEY_Y
     ])
 
 # Define GPIO pin for our CLK pin of rotary encoder
-clk = 17
+clk = 11
 
 # Define GPIO pin for our DT pin of rotary encoder
-dt = 18
+dt = 12
 
 # Set pins to inputs with pulldown resistor
-GPIO.setmode(GPIO,BCM)
+GPIO.setmode(GPIO.BOARD)
 GPIO.setup(clk, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(dt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -33,13 +33,13 @@ try:
         if clkState != clkLastState:
             if dtState != clkState:
                 print("We clockwise bois")
-                sleep(.01)
+                #sleep(1)
                 device.emit_click(uinput.KEY_A)
                 device.emit_click(uinput.KEY_Y)
                 device.emit_click(uinput.KEY_Y)
             else:
                 print("We counterclockwise bois")
-                sleep(.01)
+                #sleep(1)
                 device.emit_click(uinput.KEY_Y)
                 device.emit_click(uinput.KEY_Y)
                 device.emit_click(uinput.KEY_A)
@@ -48,4 +48,5 @@ try:
 
 # Not entirely sure why this is here, but it looks important
 finally:
+    print("in final")
     GPIO.cleanup()
