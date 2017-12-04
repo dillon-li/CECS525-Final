@@ -1,2 +1,2 @@
 # CECS525-Final
-`pip install uinput`
+`pip install python-uinput`
