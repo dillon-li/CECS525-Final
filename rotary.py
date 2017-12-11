@@ -1,17 +1,5 @@
 from RPi import GPIO
 from time import sleep
-import uinput
-
-# Define our "keyboard"
-device = uinput.Device([
-    uinput.KEY_A,
-    uinput.KEY_Y,
-    uinput.KEY_H,
-    uinput.KEY_X,
-    uinput.KEY_D,
-    uinput.KEY_B,
-    uinput.KEY_T
-    ])
 
 # Define GPIO pin for our CLK pin of rotary encoder
 clk = 11
@@ -22,6 +10,7 @@ dt = 12
 button1 = 16
 button2 = 15
 button3 = 18
+LED = 22
 
 # Set pins to inputs with pulldown resistor
 GPIO.setmode(GPIO.BOARD)
@@ -30,14 +19,24 @@ GPIO.setup(dt, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(button3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(LED, GPIO.OUT)
 
 # Initial state setup
 clkLastState = GPIO.input(clk)
+
+#Setup NULL_CHAR and define report function
+NULL_CHAR = chr(0)
+
+def write_report(report):
+    with open('/dev/hidg0', 'rb+') as fd:
+        GPIO.output(LED, True)
+        fd.write(report.encode())
 
 # Listen for rotations and do shit
 try:
     while True:
         # Get current states
+        GPIO.output(LED, False)
         clkState = GPIO.input(clk)
         dtState = GPIO.input(dt)
         b1State = GPIO.input(button1)
@@ -48,30 +47,29 @@ try:
         #if not b1State:
             #device.emit_click(uinput.KEY_H)
         if not b1State:
-            device.emit_click(uinput.KEY_X)
-            device.emit_click(uinput.KEY_D)
+            write_report(chr(32)+NULL_CHAR+chr(11)+NULL_CHAR*5)
             sleep(0.2)
+            write_report(NULL_CHAR*8)
         if not b2State:
-            device.emit_click(uinput.KEY_H)
-            device.emit_click(uinput.KEY_H)
+            write_report(NULL_CHAR*2+chr(18)+NULL_CHAR*5)
             sleep(0.2)
+            write_report(NULL_CHAR*8)
         if not b3State:
-            device.emit_click(uinput.KEY_B)
-            device.emit_click(uinput.KEY_T)
+            write_report(NULL_CHAR+NULL_CHAR+chr(26)+NULL_CHAR*5)
             sleep(0.2)
+            write_report(NULL_CHAR*8)
         if clkState != clkLastState:
             if dtState != clkState:
-                print("We clockwise bois")
+                #print("We clockwise bois")
                 #sleep(1)
-                device.emit_click(uinput.KEY_A)
-                device.emit_click(uinput.KEY_Y)
-                device.emit_click(uinput.KEY_Y)
+                write_report(chr(32)+NULL_CHAR+chr(8)+NULL_CHAR*5)
+                write_report(NULL_CHAR*8)
+
             else:
-                print("We counterclockwise bois")
+                #print("We counterclockwise bois")
                 #sleep(1)
-                device.emit_click(uinput.KEY_Y)
-                device.emit_click(uinput.KEY_Y)
-                device.emit_click(uinput.KEY_A)
+                write_report(chr(32)+NULL_CHAR+chr(15)+NULL_CHAR*5)
+                write_report(NULL_CHAR*8)
         clkLastState = clkState # set for next rotation
         sleep(0.01) # Put some slight waiting in there
 
